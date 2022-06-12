@@ -8,7 +8,7 @@ if sys.version_info >= (3,8):
 else:
     import pickle5 as pickle
 
-folder = '../data/WTC_I/'
+folder = 'data/WTC_I/'
 files = os.listdir( folder )
 
 wtc1_structs = []
@@ -24,7 +24,7 @@ wtc1_string = ''
 for s in wtc1_structs:
     wtc1_string += s.nod_12t_string
 
-text_file = open("wtc1.txt", "w")
+text_file = open("data/wtc1.txt", "w")
 text_file.write(wtc1_string)
 text_file.close()
 
