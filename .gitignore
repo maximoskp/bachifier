@@ -1,0 +1,6 @@
+data/
+figs/
+tests/
+
+__pycache__/
+.DS_Store
