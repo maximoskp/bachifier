@@ -26,7 +26,7 @@ input_text = []
 # binary
 target_text = []
 
-for f in range(0, len(text)-max_length-1, max_length):
+for f in range(0, len(text)-max_length-1, max_length//3):
     inps = text[f:f+max_length]
     targ = text[f+1:f+max_length+1]
 

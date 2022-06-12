@@ -2,6 +2,7 @@ import numpy as np
 import pickle
 import tensorflow as tf
 from tensorflow import keras
+import os
 
 with open('data/dataset.pickle', 'rb') as handle:
     dataset = pickle.load(handle)
@@ -40,7 +41,7 @@ input_layer = keras.layers.Input(shape=[max_length])
 
 embedding = keras.layers.Embedding(
     input_dim=vocab_size,
-    output_dim=8,
+    output_dim=64,
     batch_input_shape=[batch_size, None]
 )
 
@@ -62,7 +63,7 @@ lstm2 = keras.layers.Bidirectional( keras.layers.LSTM(
 
 d3 = keras.layers.TimeDistributed( keras.layers.Dense( 128 , activation='selu', input_shape=[vocab_size] ) )
 
-output_layer = keras.layers.Dense(vocab_size, activation='softmax' )
+output_layer = keras.layers.Dense(vocab_size, activation='sigmoid' )
 
 z = embedding(input_layer)
 z = lstm1(z)
@@ -73,8 +74,29 @@ model_out = output_layer(z)
 model = keras.Model(inputs=[input_layer], outputs=[model_out])
 
 model.summary()
+# model.compile(loss='binary_crossentropy', optimizer='adam', metrics='accuracy')
+model.compile(loss='binary_crossentropy', optimizer='adam', metrics='binary_accuracy')
 
+# checkpoint ====================================================================
+from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger
+model_name = 'bachifier'
+os.makedirs( 'models', exist_ok=True )
+filepath = 'models/'+model_name+'_epoch{epoch:02d}_valLoss{val_loss:.6f}.hdf5'
+checkpoint = ModelCheckpoint(filepath=filepath,
+                            monitor='val_loss',
+                            verbose=1,
+                            save_best_only=True,
+                            mode='min')
+filepath_current_best = 'models/'+model_name+'_current_best.hdf5'
+checkpoint_current_best = ModelCheckpoint(filepath=filepath_current_best,
+                            monitor='val_loss',
+                            verbose=1,
+                            save_best_only=True,
+                            mode='min')
+if os.path.exists('/models/'+model_name+'_logger.csv'):
+    os.remove('/models/'+model_name+'_logger.csv')
+csv_logger = CSVLogger('models/'+model_name+'_logger.csv', append=True, separator=';')
+# checkpoint ====================================================================
 
-model.compile(loss='binary_crossentropy', optimizer='adam', metrics='accuracy')
-
-history = model.fit(x_train, y_train, batch_size=batch_size, epochs=10, validation_data=(x_valid,y_valid), verbose=1)
+# history = model.fit(x_train, y_train, batch_size=batch_size, epochs=1000, validation_data=(x_valid,y_valid), verbose=1)
+history = model.fit(x_train, y_train, batch_size=batch_size, epochs=1000, validation_data=(x_valid,y_valid), callbacks=[checkpoint, checkpoint_current_best, csv_logger], verbose=1)
