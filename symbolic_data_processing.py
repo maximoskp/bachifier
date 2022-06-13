@@ -7,13 +7,14 @@ class SymbolicInfo:
     
     metadata = None
     
-    def __init__(self, filepath, metadatafile=None, logging=False):
+    def __init__(self, filepath, metadatafile=None, logging=False, truncation=True, make12t=True):
         if logging:
             print('processing ', filepath)
         if metadatafile is not None and SymbolicInfo.metadata is None:
             SymbolicInfo.metadata = pd.read_csv( metadatafile )
         if filepath.split('.')[-1] in ['xml', 'mid', 'midi', 'mxl', 'musicxml']:
             self.name = filepath.split('.')[-2].split(os.sep)[-1]
+            self.truncation = truncation
             if SymbolicInfo.metadata is not None:
                 self.title = self.metadata[ self.metadata['ID'] == self.name ]['Title']
             self.stream = m21.converter.parse( filepath )
@@ -23,8 +24,9 @@ class SymbolicInfo:
             self.make_pcp()
             self.estimate_tonality()
             self.make_NOD_string()
-            print('making 12t')
-            self.make_12t_NOD_string()
+            if make12t:
+                print('making 12t')
+                self.make_12t_NOD_string()
         else:
             print('bad format')
     # end __init__
@@ -53,13 +55,23 @@ class SymbolicInfo:
         for n in self.flat.notes:
             if isinstance(n, m21.note.Note):
                 if n.offset - prev_offset >= 0:
-                    s += '_(' + str(n.pitch.midi) + ',' + str(n.offset - prev_offset) + ',' + str(n.duration.quarterLength) + ')'
-                    prev_offset = n.offset
+                    offset_string = str(float(n.offset) - prev_offset)
+                    duration_string = str(float(n.duration.quarterLength))
+                    if self.truncation:
+                        offset_string = '{:.2f}'.format( float(n.offset) - prev_offset )
+                        duration_string = '{:.2f}'.format( float(n.duration.quarterLength) )
+                    s += '_(' + str(n.pitch.midi) + ',' + offset_string + ',' + duration_string + ')'
+                    prev_offset = float(n.offset)
             elif isinstance(n, m21.chord.Chord):
                 if n.offset - prev_offset >= 0:
                     for note in n:
-                        s += '_(' + str(note.pitch.midi) + ',' + str(n.offset - prev_offset) + ',' + str(note.duration.quarterLength) + ')'
-                    prev_offset = n.offset
+                        offset_string = str(float(n.offset) - prev_offset)
+                        duration_string = str(float(n.duration.quarterLength))
+                        if self.truncation:
+                            offset_string = '{:.2f}'.format( float(n.offset) - prev_offset )
+                            duration_string = '{:.2f}'.format( float(n.duration.quarterLength) )
+                        s += '_(' + str(note.pitch.midi) + ',' + offset_string + ',' + duration_string + ')'
+                    prev_offset = float(n.offset)
         self.nod_string = s
     # end make_NOD_string
 
@@ -73,13 +85,23 @@ class SymbolicInfo:
             for n in f.notes:
                 if isinstance(n, m21.note.Note):
                     if n.offset - prev_offset >= 0:
-                        s += '_(' + str(n.pitch.midi) + ',' + str(n.offset - prev_offset) + ',' + str(n.duration.quarterLength) + ')'
-                        prev_offset = n.offset
+                        offset_string = str(float(n.offset) - prev_offset)
+                        duration_string = str(float(n.duration.quarterLength))
+                        if self.truncation:
+                            offset_string = '{:.2f}'.format( float(n.offset) - prev_offset )
+                            duration_string = '{:.2f}'.format( float(n.duration.quarterLength) )
+                        s += '_(' + str(n.pitch.midi) + ',' + offset_string + ',' + duration_string + ')'
+                        prev_offset = float(n.offset)
                 elif isinstance(n, m21.chord.Chord):
                     if n.offset - prev_offset >= 0:
                         for note in n:
-                            s += '_(' + str(note.pitch.midi) + ',' + str(n.offset - prev_offset) + ',' + str(note.duration.quarterLength) + ')'
-                        prev_offset = n.offset  
+                            offset_string = str(float(n.offset) - prev_offset)
+                            duration_string = str(float(n.duration.quarterLength))
+                            if self.truncation:
+                                offset_string = '{:.2f}'.format( float(n.offset) - prev_offset )
+                                duration_string = '{:.2f}'.format( float(n.duration.quarterLength) )
+                            s += '_(' + str(note.pitch.midi) + ',' + offset_string + ',' + duration_string + ')'
+                        prev_offset = float(n.offset)
         self.nod_12t_string = s
     # end make_NOD_string
 # end class SymbolicInfo

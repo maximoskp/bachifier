@@ -13,9 +13,9 @@ vocab_size = dataset['vocab_size']
 max_length = dataset['max_length']
 
 rnd_idxs = np.random.permutation( x.shape[0] )
-tr = 2*x.shape[0]//3
-v = x.shape[0]//6
-te = x.shape[0]//6
+tr = 2*x.shape[0]//30
+v = x.shape[0]//60
+te = x.shape[0]//60
 
 print('x.shape: ', x.shape)
 print('y.shape: ', y.shape)
@@ -41,12 +41,12 @@ input_layer = keras.layers.Input(shape=[max_length])
 
 embedding = keras.layers.Embedding(
     input_dim=vocab_size,
-    output_dim=64,
+    output_dim=128,
     batch_input_shape=[batch_size, None]
 )
 
 lstm1 = keras.layers.LSTM(
-    units=256, # LSTM units in this layer
+    units=512, # LSTM units in this layer
     # input_shape=[max_length, vocab_size],
     return_sequences=True, # for input to the next LSTM
     # return_state=True,
@@ -54,14 +54,15 @@ lstm1 = keras.layers.LSTM(
 )
 
 lstm2 = keras.layers.Bidirectional( keras.layers.LSTM(
-    units=256, # LSTM units in this layer
+    units=512, # LSTM units in this layer
     # input_shape=[max_length, vocab_size],
     return_sequences=True,
     # return_state=True,
     # recurrent_activation='sigmoid',
 ) )
 
-d3 = keras.layers.TimeDistributed( keras.layers.Dense( 128 , activation='selu', input_shape=[vocab_size] ) )
+d3 = keras.layers.TimeDistributed( keras.layers.Dense( 256 , activation='selu', input_shape=[vocab_size] ) )
+d4 = keras.layers.TimeDistributed( keras.layers.Dense( 128 , activation='selu', input_shape=[vocab_size] ) )
 
 output_layer = keras.layers.Dense(vocab_size, activation='sigmoid' )
 
@@ -69,6 +70,7 @@ z = embedding(input_layer)
 z = lstm1(z)
 z = lstm2(z)
 z = d3(z)
+z = d4(z)
 model_out = output_layer(z)
 
 model = keras.Model(inputs=[input_layer], outputs=[model_out])
@@ -76,6 +78,7 @@ model = keras.Model(inputs=[input_layer], outputs=[model_out])
 model.summary()
 # model.compile(loss='binary_crossentropy', optimizer='adam', metrics='accuracy')
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics='binary_accuracy')
+# model.compile(loss='mean_squared_error', optimizer='adam', metrics='cosine_similarity')
 
 # checkpoint ====================================================================
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger

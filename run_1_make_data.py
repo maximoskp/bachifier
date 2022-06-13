@@ -16,7 +16,7 @@ idx2char = {i:u for i, u in enumerate(unique)}
 print('number of unique: ', len(unique))
 
 # setting the maximum length sentence we want for a single input in characters
-max_length = 300
+max_length = 100
 
 # length of the vocabulary in chars
 vocab_size = len(unique)
