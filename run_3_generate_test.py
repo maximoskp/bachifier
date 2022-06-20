@@ -81,7 +81,7 @@ print(p_in)
 print( 'FINDING:', p_in.rfind('') )
 
 
-p_out = recompose_part(p_in, temperature=0.3)
+p_out = recompose_part(p_in, temperature=0.1)
 print('p_in: ', p_in)
 print('p_out: ', p_out)
 
