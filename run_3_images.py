@@ -43,14 +43,12 @@ def plot_image(image):
 
 def columnwise_probability(img):
     new_img = np.zeros( img.shape )
-    print('new_img.shape', new_img.shape)
     for j in range( img.shape[1] ):
         if np.sum( img[:,j] )!= 0:
             new_img[:,j] = img[:,j]/np.sum( img[:,j] )
     return new_img
 
 def sample(preds, temperature=1.0):
-    print('IN SAMPLE')
     # helper function to sample an index from a probability array
     preds = np.asarray(preds).astype("float64")
     preds = np.log(preds) / temperature
@@ -58,17 +56,15 @@ def sample(preds, temperature=1.0):
     preds = exp_preds / np.sum(exp_preds)
     # probas = np.random.multinomial(1, preds, 1)
     probas = columnwise_probability(preds)
-    print('probas.shape', probas.shape)
+    probas = np.squeeze( probas )
     row_max = np.argmax(np.max(probas, axis=1))
     col_max = np.argmax(np.max(probas, axis=0))
-    print('row_max', row_max)
-    print('col_max', col_max)
     return [row_max, col_max]
 
 def column_reduce(img, row_max, col_max, div=4):
     new_img = copy.deepcopy( img )
-    new_img[ :, col_max ] = new_img[ :, col_max ]/div
-    new_img[ row_max, col_max ] = 1
+    new_img[ 0, :, col_max ] = new_img[ 0, :, col_max ]/div
+    new_img[ 0, row_max, col_max ] = 0
     return new_img
 
 
@@ -80,15 +76,17 @@ def iterative_reconstruction(model, image, iterations=10, filename='test'):
     plot_image( np.reshape(img, (rows, columns)) )
     for image_index in range(iterations):
         img = model.predict( img )
-        sampled_list = []
-        achieved_num_notes = 0
-        [r, c] = sample( img, temperature=0.1 )
-        while achieved_num_notes <= target_num_notes:
-            while [r,c] in sampled_list:
-                [r, c] = sample( img, temperature=0.1 )
-            img = column_reduce(img, r, c)
-            achieved_num_notes += 1
-        print('image_index: ', image_index)
+        # sampled_list = []
+        # achieved_num_notes = 0
+        # [r, c] = sample( img, temperature=0.1 )
+        # while achieved_num_notes <= target_num_notes:
+        #     while [r,c] in sampled_list:
+        #         [r, c] = sample( img, temperature=0.1 )
+        #     sampled_list.append( [r, c] )
+        #     img = column_reduce(img, r, c)
+        #     achieved_num_notes += 1
+        # for s in sampled_list:
+        #     img[0, s[0], s[1]] = 1
         plt.subplot(iterations+1, 1, 2 + image_index)
         plot_image( np.reshape(img, (rows, columns)) )
     plt.savefig('figs/' + filename + '.png', dpi=300)

@@ -24,12 +24,18 @@ print('x_valid.shape: ', x_valid.shape)
 x_test = x[ rnd_idxs[tr+v:tr+v+te] ,:]
 print('x_test.shape: ', x_test.shape)
 
-latent_size = 50
+latent_size = 100
 encoder = keras.models.Sequential([
     keras.layers.Flatten(input_shape=[rows, columns]),
-    keras.layers.Dense(350, activation='relu'),
-    keras.layers.Dense(200, activation='relu'),
-    keras.layers.Dense(100, activation='relu'),
+    keras.layers.Dense(700, activation='relu'),
+    keras.layers.Dropout(0.3),
+    keras.layers.BatchNormalization(),
+    keras.layers.Dense(500, activation='relu'),
+    keras.layers.Dropout(0.3),
+    keras.layers.BatchNormalization(),
+    keras.layers.Dense(300, activation='relu'),
+    keras.layers.Dropout(0.3),
+    keras.layers.BatchNormalization()
 ])
 
 latent = keras.models.Sequential([
@@ -37,9 +43,13 @@ latent = keras.models.Sequential([
 ])
 
 decoder = keras.models.Sequential([
-    keras.layers.Dense(100, activation='relu'),
-    keras.layers.Dense(200, activation='relu'),
-    keras.layers.Dense(350, activation='relu'),
+    keras.layers.Dense(300, activation='relu'),
+    keras.layers.Dropout(0.3),
+    keras.layers.BatchNormalization(),
+    keras.layers.Dense(500, activation='relu'),
+    keras.layers.Dropout(0.3),
+    keras.layers.BatchNormalization(),
+    keras.layers.Dense(750, activation='relu'),
     keras.layers.Dense(rows*columns, activation='sigmoid'),
     keras.layers.Reshape([rows,columns])
 ])
